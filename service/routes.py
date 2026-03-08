@@ -15,7 +15,7 @@
 ######################################################################
 
 """
-YourResourceModel Service
+Recommendation Service
 
 This service implements a REST API that allows you to Create, Read, Update
 and Delete YourResourceModel
@@ -23,20 +23,23 @@ and Delete YourResourceModel
 
 from flask import jsonify, request, url_for, abort
 from flask import current_app as app  # Import Flask application
-from service.models import YourResourceModel
+from service.models import Recommendation
 from service.common import status  # HTTP Status Codes
 
 
 ######################################################################
-# GET INDEX
+# List recommendations
 ######################################################################
-@app.route("/")
-def index():
-    """Root URL response"""
-    return (
-        "Reminder: return some useful information in json format about the service here",
-        status.HTTP_200_OK,
-    )
+@app.route("/recommendations", methods=["GET"])
+def list_recommendations():
+    """Returns all Recommendations"""
+    app.logger.info("Request to list Recommendations")
+
+    recommendations = Recommendation.all()
+
+    results = [r.serialize() for r in recommendations]
+
+    return jsonify(results), status.HTTP_200_OK
 
 
 ######################################################################
