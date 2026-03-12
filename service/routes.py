@@ -80,6 +80,95 @@ def create_recommendations():
 
 
 ######################################################################
+# UPDATE AN EXISTING RECOMMENDATION
+######################################################################
+@app.route("/recommendations/<int:recommendation_id>", methods=["PUT"])
+def update_recommendations(recommendation_id):
+    """Update a Recommendation
+
+    This endpoint will update a Recommendation based on the body that is posted
+    """
+    app.logger.info("Request to update recommendation with id: %s", recommendation_id)
+
+    recommendation = Recommendation.find(recommendation_id)
+    if not recommendation:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Recommendation with id '{recommendation_id}' was not found.",
+        )
+
+    data = request.get_json()
+    if data is None:
+        abort(status.HTTP_400_BAD_REQUEST, "Invalid JSON body")
+    recommendation.deserialize(data)
+    recommendation.id = recommendation_id
+    recommendation.update()
+
+    app.logger.info("Recommendation with ID [%s] updated.", recommendation.id)
+    return jsonify(recommendation.serialize()), status.HTTP_200_OK
+
+
+######################################################################
+# E R R O R   H A N D L E R S
+######################################################################
+
+
+@app.errorhandler(400)
+def bad_request(error):
+    """Handle 400 Bad Request errors as JSON"""
+    message = str(error)
+    app.logger.warning(message)
+    return (
+        jsonify(status=status.HTTP_400_BAD_REQUEST, error="Bad Request", message=message),
+        status.HTTP_400_BAD_REQUEST,
+    )
+
+
+@app.errorhandler(404)
+def not_found(error):
+    """Handle 404 Not Found errors as JSON"""
+    message = str(error)
+    app.logger.warning(message)
+    return (
+        jsonify(status=status.HTTP_404_NOT_FOUND, error="Not Found", message=message),
+        status.HTTP_404_NOT_FOUND,
+    )
+
+
+@app.errorhandler(405)
+def method_not_allowed(error):
+    """Handle 405 Method Not Allowed errors as JSON"""
+    message = str(error)
+    app.logger.warning(message)
+    return (
+        jsonify(status=status.HTTP_405_METHOD_NOT_ALLOWED, error="Method Not Allowed", message=message),
+        status.HTTP_405_METHOD_NOT_ALLOWED,
+    )
+
+
+@app.errorhandler(415)
+def unsupported_media_type(error):
+    """Handle 415 Unsupported Media Type errors as JSON"""
+    message = str(error)
+    app.logger.warning(message)
+    return (
+        jsonify(status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, error="Unsupported Media Type", message=message),
+        status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+    )
+
+
+@app.errorhandler(500)
+def internal_server_error(error):
+    """Handle 500 Internal Server Error as JSON"""
+    message = str(error)
+    app.logger.error(message)
+    return (
+        jsonify(status=status.HTTP_500_INTERNAL_SERVER_ERROR, error="Internal Server Error", message=message),
+        status.HTTP_500_INTERNAL_SERVER_ERROR,
+    )
+
+
+######################################################################
 # Checks the ContentType of a request
 ######################################################################
 def check_content_type(content_type) -> None:

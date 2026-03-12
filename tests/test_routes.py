@@ -24,7 +24,7 @@ import logging
 from unittest import TestCase
 from wsgi import app
 from service.common import status
-from service.models import db, Recommendation
+from service.models import db, Recommendation, RecommendationType
 from .factories import RecommendationFactory
 
 DATABASE_URI = os.getenv(
@@ -118,3 +118,69 @@ class TestYourResourceService(TestCase):
         #     new_recommendation["recommendation_type"],
         #     test_recommendation.recommendation_type.value,
         # )
+
+    ######################################################################
+    #  T E S T   U P D A T E   E N D P O I N T
+    ######################################################################
+
+    def test_update_recommendation(self):
+        """It should update an existing Recommendation and return 200"""
+        # Create and persist a recommendation
+        recommendation = RecommendationFactory()
+        recommendation.id = None
+        recommendation.create()
+        self.assertIsNotNone(recommendation.id)
+
+        # Build updated data with a different recommendation_type
+        original_type = recommendation.recommendation_type.value
+        new_type = next(
+            t.value for t in RecommendationType if t.value != original_type
+        )
+        updated_data = {
+            "source_product_id": recommendation.source_product_id,
+            "recommended_product_id": recommendation.recommended_product_id,
+            "recommendation_type": new_type,
+        }
+
+        resp = self.client.put(
+            f"/recommendations/{recommendation.id}",
+            json=updated_data,
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(data["id"], recommendation.id)
+        self.assertEqual(data["source_product_id"], updated_data["source_product_id"])
+        self.assertEqual(
+            data["recommended_product_id"], updated_data["recommended_product_id"]
+        )
+        self.assertEqual(data["recommendation_type"], new_type)
+
+    def test_update_recommendation_not_found(self):
+        """It should return 404 when updating a non-existent Recommendation"""
+        payload = {
+            "source_product_id": 1,
+            "recommended_product_id": 2,
+            "recommendation_type": "cross_sell",
+        }
+        resp = self.client.put(
+            "/recommendations/999",
+            json=payload,
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_update_recommendation_bad_json(self):
+        """It should return 400 when the PUT request body is invalid JSON"""
+        # Create and persist a recommendation so the ID exists
+        recommendation = RecommendationFactory()
+        recommendation.id = None
+        recommendation.create()
+        self.assertIsNotNone(recommendation.id)
+
+        resp = self.client.put(
+            f"/recommendations/{recommendation.id}",
+            data="this-is-not-json",
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
