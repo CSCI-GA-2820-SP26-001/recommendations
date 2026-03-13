@@ -17,11 +17,14 @@ db = SQLAlchemy()
 class DataValidationError(Exception):
     """Used for an data validation errors when deserializing"""
 
+
 class RecommendationType(enum.Enum):
     """Enumeration of valid recommendation types"""
+
     CROSS_SELL = "cross_sell"
     UP_SELL = "up_sell"
     ACCESSORY = "accessory"
+
 
 class Recommendation(db.Model):
     """
@@ -38,23 +41,22 @@ class Recommendation(db.Model):
             "source_product_id",
             "recommended_product_id",
             "recommendation_type",
-            name="uq_recommendation"
+            name="uq_recommendation",
         ),
         db.CheckConstraint(
             "source_product_id != recommended_product_id",
-            name="ck_no_self_recommendation"
+            name="ck_no_self_recommendation",
         ),
     )
 
     id = db.Column(db.Integer, primary_key=True)
     source_product_id = db.Column(db.Integer, nullable=False)
     recommended_product_id = db.Column(db.Integer, nullable=False)
-    recommendation_type = db.Column(
-        db.Enum(RecommendationType),
-        nullable=False
-    )
+    recommendation_type = db.Column(db.Enum(RecommendationType), nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.now(), nullable=False)
-    updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now(), nullable=False)
+    updated_at = db.Column(
+        db.DateTime, default=db.func.now(), onupdate=db.func.now(), nullable=False
+    )
 
     # Todo: Place the rest of your schema here...
 
@@ -68,7 +70,11 @@ class Recommendation(db.Model):
 
     def create(self):
         """Creates a Recommendation to the database"""
-        logger.info("Creating recommendation source=%s -> recommended=%s", self.source_product_id, self.recommended_product_id)
+        logger.info(
+            "Creating recommendation source=%s -> recommended=%s",
+            self.source_product_id,
+            self.recommended_product_id,
+        )
         self.id = None  # pylint: disable=invalid-name
         try:
             db.session.add(self)
