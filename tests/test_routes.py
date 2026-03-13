@@ -72,4 +72,29 @@ class TestYourResourceService(TestCase):
         resp = self.client.get("/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
-    # Todo: Add your test cases here...
+    def test_get_recommendation_list(self):
+        """It should Get a list of Recommendations"""
+        test_recommendations = [RecommendationFactory() for _ in range(5)]
+
+        for recommendation in test_recommendations:
+            response = self.client.post(BASE_URL, json=recommendation.serialize())
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        response = self.client.get(BASE_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = response.get_json()
+        self.assertEqual(len(data), 5)
+
+        for recommendation in data:
+            self.assertIn("source_product_id", recommendation)
+            self.assertIn("recommended_product_id", recommendation)
+            self.assertIn("recommendation_type", recommendation)
+
+    def test_get_recommendation_list_empty(self):
+        """It should return an empty list"""
+        response = self.client.get(BASE_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        data = response.get_json()
+        self.assertEqual(len(data), 0)
