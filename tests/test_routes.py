@@ -101,6 +101,67 @@ class TestYourResourceService(TestCase):
             test_recommendation.recommendation_type.value,
         )
 
+    def test_delete_recommendation(self):
+        """It should Delete an existing Recommendation"""
+        test_recommendation = RecommendationFactory()
+        response = self.client.post(BASE_URL, json=test_recommendation.serialize())
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        new_recommendation = response.get_json()
+        recommendation_id = new_recommendation["id"]
+
+        response = self.client.delete(f"{BASE_URL}/{recommendation_id}")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        deleted_recommendation = Recommendation.find(recommendation_id)
+        self.assertIsNone(deleted_recommendation)
+
+    def test_delete_recommendation_not_found(self):
+        """It should return 404 when deleting a Recommendation that does not exist"""
+        response = self.client.delete(f"{BASE_URL}/999999")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_create_recommendation_missing_field(self):
+        """It should not Create a Recommendation with missing data"""
+        test_recommendation = {"source_product_id": 1, "recommended_product_id": 2}
+        response = self.client.post(BASE_URL, json=test_recommendation)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_recommendation_invalid_type(self):
+        """It should not Create a Recommendation with invalid recommendation type"""
+        test_recommendation = {
+            "source_product_id": 1,
+            "recommended_product_id": 2,
+            "recommendation_type": "invalid_type",
+        }
+        response = self.client.post(BASE_URL, json=test_recommendation)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_method_not_allowed(self):
+        """It should return 405 when using an unsupported method"""
+        response = self.client.put(BASE_URL, json={})
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_create_recommendation_no_json(self):
+        """It should not Create a Recommendation with non-JSON data"""
+        response = self.client.post(
+            BASE_URL, data="not json", content_type="text/plain"
+        )
+        self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+
+    def test_create_recommendation_no_content_type(self):
+        """It should not Create a Recommendation without a Content-Type header"""
+        test_recommendation = {
+            "source_product_id": 1,
+            "recommended_product_id": 2,
+            "recommendation_type": "cross_sell",
+        }
+        response = self.client.post(
+            BASE_URL,
+            data='{"source_product_id": 1, "recommended_product_id": 2, "recommendation_type": "cross_sell"}',
+        )
+        self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+
         # # Uncomment this code when get_recommendations is implemented
         # # Check that the location header was correct
         # response = self.client.get(location)

@@ -25,6 +25,7 @@ from unittest import TestCase
 from wsgi import app
 from service.models import Recommendation, RecommendationType, DataValidationError, db
 from .factories import RecommendationFactory
+from unittest.mock import patch
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
@@ -67,14 +68,126 @@ class TestRecommendation(TestCase):
 
     def test_create_recommendation(self):
         """It should create a Recommendation"""
-        recommendation= RecommendationFactory()
+        recommendation = RecommendationFactory()
         recommendation.create()
         self.assertIsNotNone(recommendation.id)
         found = Recommendation.all()
         self.assertEqual(len(found), 1)
         data = Recommendation.find(recommendation.id)
         self.assertEqual(data.source_product_id, recommendation.source_product_id)
-        self.assertEqual(data.recommended_product_id, recommendation.recommended_product_id)
+        self.assertEqual(
+            data.recommended_product_id, recommendation.recommended_product_id
+        )
         self.assertEqual(data.recommendation_type, recommendation.recommendation_type)
+
+    def test_update_a_recommendation(self):
+        """It should update a Recommendation"""
+        recommendation = RecommendationFactory()
+        recommendation.create()
+
+        recommendation.recommendation_type = RecommendationType.UP_SELL
+        recommendation.update()
+
+        found = Recommendation.find(recommendation.id)
+        self.assertEqual(found.recommendation_type, RecommendationType.UP_SELL)
+
+    def test_delete_a_recommendation(self):
+        """It should delete a Recommendation"""
+        recommendation = RecommendationFactory()
+        recommendation.create()
+
+        recommendation.delete()
+        found = Recommendation.find(recommendation.id)
+        self.assertIsNone(found)
+
+    def test_find_recommendation(self):
+        """It should find a Recommendation by id"""
+        recommendation = RecommendationFactory()
+        recommendation.create()
+
+        found = Recommendation.find(recommendation.id)
+        self.assertIsNotNone(found)
+        self.assertEqual(found.id, recommendation.id)
+
+    def test_list_all_recommendations(self):
+        """It should return all Recommendations"""
+        rec1 = RecommendationFactory()
+        rec2 = RecommendationFactory()
+        rec1.create()
+        rec2.create()
+
+        recommendations = Recommendation.all()
+        self.assertEqual(len(recommendations), 2)
+
+    def test_deserialize_with_missing_data(self):
+        """It should not deserialize a Recommendation with missing data"""
+        recommendation = Recommendation()
+        self.assertRaises(DataValidationError, recommendation.deserialize, {})
+
+    def test_deserialize_with_none(self):
+        """It should not deserialize a Recommendation with bad data"""
+        recommendation = Recommendation()
+        self.assertRaises(DataValidationError, recommendation.deserialize, None)
+
+    def test_deserialize_with_invalid_enum(self):
+        """It should not deserialize a Recommendation with invalid recommendation_type"""
+        recommendation = Recommendation()
+        bad_data = {
+            "source_product_id": 1,
+            "recommended_product_id": 2,
+            "recommendation_type": "not_real",
+        }
+        self.assertRaises(DataValidationError, recommendation.deserialize, bad_data)
+
+    def test_serialize_a_recommendation(self):
+        """It should serialize a Recommendation"""
+        recommendation = RecommendationFactory()
+        data = recommendation.serialize()
+        self.assertEqual(data["source_product_id"], recommendation.source_product_id)
+        self.assertEqual(
+            data["recommended_product_id"], recommendation.recommended_product_id
+        )
+        self.assertEqual(
+            data["recommendation_type"], recommendation.recommendation_type.value
+        )
+
+    def test_repr_of_recommendation(self):
+        """It should return the string representation of a Recommendation"""
+        recommendation = RecommendationFactory()
+        self.assertIn("Recommendation", repr(recommendation))
+        self.assertIn(str(recommendation.source_product_id), repr(recommendation))
+
+    def test_find_recommendation_not_found(self):
+        """It should return None if a Recommendation is not found"""
+        recommendation = Recommendation.find(0)
+        self.assertIsNone(recommendation)
+
+    @patch("service.models.db.session.commit")
+    def test_create_raises_data_validation_error(self, mock_commit):
+        """It should raise DataValidationError when create fails"""
+        mock_commit.side_effect = Exception("db boom")
+        recommendation = RecommendationFactory()
+        self.assertRaises(DataValidationError, recommendation.create)
+
+    @patch("service.models.db.session.commit")
+    def test_update_raises_data_validation_error(self, mock_commit):
+        """It should raise DataValidationError when update fails"""
+        recommendation = RecommendationFactory()
+        recommendation.create()
+        mock_commit.side_effect = Exception("db boom")
+        self.assertRaises(DataValidationError, recommendation.update)
+
+    @patch("service.models.db.session.commit")
+    def test_delete_raises_data_validation_error(self, mock_commit):
+        """It should raise DataValidationError when delete fails"""
+        recommendation = RecommendationFactory()
+        recommendation.create()
+        mock_commit.side_effect = Exception("db boom")
+        self.assertRaises(DataValidationError, recommendation.delete)
+
+    def test_deserialize_with_bad_attribute(self):
+        """It should not deserialize a Recommendation with a bad attribute"""
+        recommendation = Recommendation()
+        self.assertRaises(DataValidationError, recommendation.deserialize, "not a dict")
 
     # Todo: Add your test cases here...

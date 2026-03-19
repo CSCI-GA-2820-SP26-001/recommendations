@@ -138,6 +138,10 @@ class Recommendation(db.Model):
                 "Invalid Recommendation: body of request contained bad or no data "
                 + str(error)
             ) from error
+        except ValueError as error:
+            raise DataValidationError(
+                "Invalid Recommendation: invalid recommendation_type"
+            ) from error
         return self
 
     ##################################################

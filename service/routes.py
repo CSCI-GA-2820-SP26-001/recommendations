@@ -99,3 +99,22 @@ def check_content_type(content_type) -> None:
         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
         f"Content-Type must be {content_type}",
     )
+
+
+######################################################################
+# DELETE A NEW Recommendation
+######################################################################
+@app.route("/recommendations/<int:recommendation_id>", methods=["DELETE"])
+def delete_recommendation(recommendation_id):
+    """Delete a Recommendation"""
+    app.logger.info("Request to delete recommendation with id: %s", recommendation_id)
+
+    recommendation = Recommendation.find(recommendation_id)
+    if not recommendation:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Recommendation with id '{recommendation_id}' was not found.",
+        )
+
+    recommendation.delete()
+    return "", status.HTTP_204_NO_CONTENT
