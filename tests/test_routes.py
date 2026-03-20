@@ -71,9 +71,15 @@ class TestYourResourceService(TestCase):
     ######################################################################
 
     def test_index(self):
-        """It should call the home page"""
+        """It should call the home page and return service metadata"""
         resp = self.client.get("/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        data = resp.get_json()
+        self.assertIsNotNone(data)
+        self.assertEqual(data["name"], "Recommendation REST API Service")
+        self.assertEqual(data["version"], "1.0.0")
+        self.assertEqual(data["paths"]["list"], "/recommendations")
 
     def test_create_recommendation(self):
         """It should Create a new Recommendation"""
