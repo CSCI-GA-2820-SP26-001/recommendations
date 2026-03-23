@@ -58,15 +58,8 @@ class Recommendation(db.Model):
         db.DateTime, default=db.func.now(), onupdate=db.func.now(), nullable=False
     )
 
-    # Todo: Place the rest of your schema here...
-
     def __repr__(self):
-        return (
-            f"<Recommendation id=[{self.id}] "
-            f"source={self.source_product_id} -> "
-            f"recommended={self.recommended_product_id} "
-            f"({self.recommendation_type.value})>"
-        )
+        return f"<Recommendation id=[{self.id}]>"
 
     def create(self):
         """Creates a Recommendation to the database"""
@@ -75,7 +68,7 @@ class Recommendation(db.Model):
             self.source_product_id,
             self.recommended_product_id,
         )
-        self.id = None  # pylint: disable=invalid-name
+        self.id = None
         try:
             db.session.add(self)
             db.session.commit()

@@ -45,7 +45,32 @@ def index():
 
 
 ######################################################################
-# CREATE A NEW Recommendation
+# READ A RECOMMENDATION
+######################################################################
+@app.route("/recommendations/<int:recommendation_id>", methods=["GET"])
+def get_recommendations(recommendation_id):
+    """
+    Retrieve a single Recommendation
+
+    This endpoint will return a Recommendation based on its id
+    """
+    app.logger.info(
+        "Request to Retrieve a recommendation with id [%s]", recommendation_id
+    )
+
+    recommendation = Recommendation.find(recommendation_id)
+    if not recommendation:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Recommendation with id '{recommendation_id}' was not found.",
+        )
+
+    app.logger.info("Returning recommendation: %s", recommendation.id)
+    return jsonify(recommendation.serialize()), status.HTTP_200_OK
+
+
+######################################################################
+# CREATE A NEW RECOMMENDATION
 ######################################################################
 @app.route("/recommendations", methods=["POST"])
 def create_recommendations():
@@ -57,21 +82,16 @@ def create_recommendations():
     check_content_type("application/json")
 
     recommendation = Recommendation()
-    # Get the data from the request and deserialize it
     data = request.get_json()
     app.logger.info("Processing: %s", data)
     recommendation.deserialize(data)
 
-    # Save the new Recommendation to the database
     recommendation.create()
     app.logger.info("Recommendation with new id [%s] saved!", recommendation.id)
 
-    # Return the location of the new Recommendation
-    # Todo: uncomment this code when get_recommendations is implemented
-    # location_url = url_for("get_recommendations", recommendation_id=recommendation.id, _external=True)
-
-    location_url = "unknown"
-
+    location_url = url_for(
+        "get_recommendations", recommendation_id=recommendation.id, _external=True
+    )
     return (
         jsonify(recommendation.serialize()),
         status.HTTP_201_CREATED,
