@@ -114,6 +114,7 @@ class TestRecommendation(TestCase):
         self.assertEqual(
             found_recommendation.recommendation_type, recommendation.recommendation_type
         )
+
     def test_update_a_recommendation(self):
         """It should Update a Recommendation"""
         recommendation = RecommendationFactory()
@@ -142,4 +143,16 @@ class TestRecommendation(TestCase):
         logging.debug(recommendation)
         recommendation.id = None
         self.assertRaises(DataValidationError, recommendation.update)
+
     # Todo: Add your test cases here...
+    def test_list_all_recommendations(self):
+        """It should List all Recommendations in the database"""
+        recommendations = Recommendation.all()
+        self.assertEqual(recommendations, [])
+        # Create 5 Recommendations
+        for _ in range(5):
+            recommendation = RecommendationFactory()
+            recommendation.create()
+        # See if we get back 5 recommendations
+        recommendations = Recommendation.all()
+        self.assertEqual(len(recommendations), 5)
