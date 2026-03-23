@@ -42,6 +42,43 @@ def index():
 ######################################################################
 #  R E S T   A P I   E N D P O I N T S
 ######################################################################
+######################################################################
+# LIST ALL RECOMMENDATIONS
+######################################################################
+@app.route("/recommendations", methods=["GET"])
+def list_recommendations():
+    """Returns all of the Recommendations"""
+    app.logger.info("Request for recommendations list")
+
+    recommendations = []
+
+    # Parse any arguments from the query string
+    recommendation_type = request.args.get("recommendation_type")
+    source_product_id = request.args.get("source_product_id")
+
+    if recommendation_type:
+        app.logger.info("Find by recommendation_type: %s", recommendation_type)
+        # convert string value to enum e.g. "cross_sell" -> RecommendationType.CROSS_SELL
+        try:
+            type_enum = RecommendationType[recommendation_type.upper()]
+        except KeyError:
+            abort(
+                status.HTTP_400_BAD_REQUEST,
+                f"Invalid recommendation_type: {recommendation_type}",
+            )
+        recommendations = Recommendation.find_by_type(type_enum)
+    elif source_product_id:
+        app.logger.info("Find by source_product_id: %s", source_product_id)
+        recommendations = Recommendation.find_by_source_product_id(
+            int(source_product_id)
+        )
+    else:
+        app.logger.info("Find all")
+        recommendations = Recommendation.all()
+
+    results = [r.serialize() for r in recommendations]
+    app.logger.info("Returning %d recommendations", len(results))
+    return jsonify(results), status.HTTP_200_OK
 
 
 ######################################################################
@@ -98,6 +135,7 @@ def create_recommendations():
         {"Location": location_url},
     )
 
+
 ######################################################################
 # UPDATE AN EXISTING RECOMMENDATION
 ######################################################################
@@ -128,6 +166,7 @@ def update_recommendations(recommendation_id):
 
     app.logger.info("Recommendation with ID: %d updated.", recommendation.id)
     return jsonify(recommendation.serialize()), status.HTTP_200_OK
+
 
 ######################################################################
 # Checks the ContentType of a request
