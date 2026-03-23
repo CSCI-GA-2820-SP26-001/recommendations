@@ -98,6 +98,36 @@ def create_recommendations():
         {"Location": location_url},
     )
 
+######################################################################
+# UPDATE AN EXISTING RECOMMENDATION
+######################################################################
+@app.route("/recommendations/<int:recommendation_id>", methods=["PUT"])
+def update_recommendations(recommendation_id):
+    """
+    Update a Recommendation
+
+    This endpoint will update a Recommendation based the body that is posted
+    """
+    app.logger.info(
+        "Request to Update a recommendation with id [%s]", recommendation_id
+    )
+    check_content_type("application/json")
+
+    recommendation = Recommendation.find(recommendation_id)
+    if not recommendation:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Recommendation with id '{recommendation_id}' was not found.",
+        )
+
+    data = request.get_json()
+    app.logger.info("Processing: %s", data)
+    recommendation.deserialize(data)
+
+    recommendation.update()
+
+    app.logger.info("Recommendation with ID: %d updated.", recommendation.id)
+    return jsonify(recommendation.serialize()), status.HTTP_200_OK
 
 ######################################################################
 # Checks the ContentType of a request

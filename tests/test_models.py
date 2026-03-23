@@ -114,5 +114,32 @@ class TestRecommendation(TestCase):
         self.assertEqual(
             found_recommendation.recommendation_type, recommendation.recommendation_type
         )
+    def test_update_a_recommendation(self):
+        """It should Update a Recommendation"""
+        recommendation = RecommendationFactory()
+        logging.debug(recommendation)
+        recommendation.id = None
+        recommendation.create()
+        logging.debug(recommendation)
+        self.assertIsNotNone(recommendation.id)
+        # Change it and save it
+        recommendation.recommendation_type = RecommendationType.UP_SELL
+        original_id = recommendation.id
+        recommendation.update()
+        self.assertEqual(recommendation.id, original_id)
+        self.assertEqual(recommendation.recommendation_type, RecommendationType.UP_SELL)
+        # Fetch it back and make sure the id hasn't changed but the data did change
+        recommendations = Recommendation.all()
+        self.assertEqual(len(recommendations), 1)
+        self.assertEqual(recommendations[0].id, original_id)
+        self.assertEqual(
+            recommendations[0].recommendation_type, RecommendationType.UP_SELL
+        )
 
+    def test_update_no_id(self):
+        """It should not Update a Recommendation with no id"""
+        recommendation = RecommendationFactory()
+        logging.debug(recommendation)
+        recommendation.id = None
+        self.assertRaises(DataValidationError, recommendation.update)
     # Todo: Add your test cases here...
