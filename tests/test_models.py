@@ -65,16 +65,54 @@ class TestRecommendation(TestCase):
     #  T E S T   C A S E S
     ######################################################################
 
-    def test_create_recommendation(self):
-        """It should create a Recommendation"""
-        recommendation= RecommendationFactory()
+    def test_create_a_recommendation(self):
+        """It should Create a Recommendation and assert that it exists"""
+        recommendation = Recommendation(
+            source_product_id=1,
+            recommended_product_id=2,
+            recommendation_type=RecommendationType.CROSS_SELL,
+        )
+        self.assertEqual(str(recommendation), "<Recommendation id=[None]>")
+        self.assertTrue(recommendation is not None)
+        self.assertEqual(recommendation.id, None)
+        self.assertEqual(recommendation.source_product_id, 1)
+        self.assertEqual(recommendation.recommended_product_id, 2)
+        self.assertEqual(
+            recommendation.recommendation_type, RecommendationType.CROSS_SELL
+        )
+
+    def test_add_a_recommendation(self):
+        """It should Create a Recommendation and add it to the database"""
+        recommendations = Recommendation.all()
+        self.assertEqual(recommendations, [])
+        recommendation = RecommendationFactory()
+        self.assertTrue(recommendation is not None)
+        self.assertEqual(recommendation.id, None)
+        recommendation.create()
+        # Assert that it was assigned an id and shows up in the database
+        self.assertIsNotNone(recommendation.id)
+        recommendations = Recommendation.all()
+        self.assertEqual(len(recommendations), 1)
+
+    def test_read_a_recommendation(self):
+        """It should Read a Recommendation"""
+        recommendation = RecommendationFactory()
+        logging.debug(recommendation)
+        recommendation.id = None
         recommendation.create()
         self.assertIsNotNone(recommendation.id)
-        found = Recommendation.all()
-        self.assertEqual(len(found), 1)
-        data = Recommendation.find(recommendation.id)
-        self.assertEqual(data.source_product_id, recommendation.source_product_id)
-        self.assertEqual(data.recommended_product_id, recommendation.recommended_product_id)
-        self.assertEqual(data.recommendation_type, recommendation.recommendation_type)
+        # Fetch it back
+        found_recommendation = Recommendation.find(recommendation.id)
+        self.assertEqual(found_recommendation.id, recommendation.id)
+        self.assertEqual(
+            found_recommendation.source_product_id, recommendation.source_product_id
+        )
+        self.assertEqual(
+            found_recommendation.recommended_product_id,
+            recommendation.recommended_product_id,
+        )
+        self.assertEqual(
+            found_recommendation.recommendation_type, recommendation.recommendation_type
+        )
 
     # Todo: Add your test cases here...
