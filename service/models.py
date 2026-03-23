@@ -106,9 +106,9 @@ class Recommendation(db.Model):
             "id": self.id,
             "source_product_id": self.source_product_id,
             "recommended_product_id": self.recommended_product_id,
-            "recommendation_type": self.recommendation_type.value,
-            "created_at": self.created_at.isoformat(),
-            "updated_at": self.updated_at.isoformat(),
+            "recommendation_type": self.recommendation_type.name,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
 
     def deserialize(self, data):
@@ -121,7 +121,14 @@ class Recommendation(db.Model):
         try:
             self.source_product_id = data["source_product_id"]
             self.recommended_product_id = data["recommended_product_id"]
-            self.recommendation_type = RecommendationType(data["recommendation_type"])
+            try:
+                self.recommendation_type = RecommendationType[
+                    data["recommendation_type"].upper()
+                ]
+            except KeyError as error:
+                raise DataValidationError(
+                    "Invalid recommendation_type: " + str(data["recommendation_type"])
+                ) from error
         except AttributeError as error:
             raise DataValidationError("Invalid attribute: " + error.args[0]) from error
         except KeyError as error:
