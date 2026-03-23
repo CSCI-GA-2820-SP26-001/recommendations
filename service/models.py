@@ -58,15 +58,8 @@ class Recommendation(db.Model):
         db.DateTime, default=db.func.now(), onupdate=db.func.now(), nullable=False
     )
 
-    # Todo: Place the rest of your schema here...
-
     def __repr__(self):
-        return (
-            f"<Recommendation id=[{self.id}] "
-            f"source={self.source_product_id} -> "
-            f"recommended={self.recommended_product_id} "
-            f"({self.recommendation_type.value})>"
-        )
+        return f"<Recommendation id=[{self.id}]>"
 
     def create(self):
         """Creates a Recommendation to the database"""
@@ -75,7 +68,7 @@ class Recommendation(db.Model):
             self.source_product_id,
             self.recommended_product_id,
         )
-        self.id = None  # pylint: disable=invalid-name
+        self.id = None
         try:
             db.session.add(self)
             db.session.commit()
@@ -87,6 +80,8 @@ class Recommendation(db.Model):
     def update(self):
         """Updates a Recommendation to the database"""
         logger.info("Saving recommendation id=%s", self.id)
+        if not self.id:
+            raise DataValidationError("Update called with empty ID field")
         try:
             db.session.commit()
         except Exception as e:
@@ -111,9 +106,9 @@ class Recommendation(db.Model):
             "id": self.id,
             "source_product_id": self.source_product_id,
             "recommended_product_id": self.recommended_product_id,
-            "recommendation_type": self.recommendation_type.value,
-            "created_at": self.created_at.isoformat(),
-            "updated_at": self.updated_at.isoformat(),
+            "recommendation_type": self.recommendation_type.name,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
 
     def deserialize(self, data):
@@ -126,7 +121,14 @@ class Recommendation(db.Model):
         try:
             self.source_product_id = data["source_product_id"]
             self.recommended_product_id = data["recommended_product_id"]
-            self.recommendation_type = RecommendationType(data["recommendation_type"])
+            try:
+                self.recommendation_type = RecommendationType[
+                    data["recommendation_type"].upper()
+                ]
+            except KeyError as error:
+                raise DataValidationError(
+                    "Invalid recommendation_type: " + str(data["recommendation_type"])
+                ) from error
         except AttributeError as error:
             raise DataValidationError("Invalid attribute: " + error.args[0]) from error
         except KeyError as error:
@@ -152,16 +154,26 @@ class Recommendation(db.Model):
 
     @classmethod
     def find(cls, by_id):
-        """Finds a Recommendation by it's ID"""
+        """Finds a Recommendation by its ID"""
         logger.info("Processing lookup for id %s ...", by_id)
         return cls.query.session.get(cls, by_id)
 
     @classmethod
-    def find_by_name(cls, name):
-        """Returns all Recommendations with the given name
+    def find_by_type(cls, recommendation_type: RecommendationType) -> list:
+        """Returns all Recommendations with the given type
 
         Args:
-            name (string): the name of the Recommendations you want to match
+            recommendation_type (RecommendationType): the type to match
         """
-        logger.info("Processing name query for %s ...", name)
-        return cls.query.filter(cls.name == name)
+        logger.info("Processing type query for %s ...", recommendation_type)
+        return cls.query.filter(cls.recommendation_type == recommendation_type)
+
+    @classmethod
+    def find_by_source_product_id(cls, source_product_id: int) -> list:
+        """Returns all Recommendations with the given source_product_id
+
+        Args:
+            source_product_id (int): the source product id to match
+        """
+        logger.info("Processing source_product_id query for %s ...", source_product_id)
+        return cls.query.filter(cls.source_product_id == source_product_id)

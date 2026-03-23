@@ -18,12 +18,12 @@
 Recommendation Service
 
 This service implements a REST API that allows you to Create, Read, Update
-and Delete Recommendation
+and Delete Recommendations
 """
 
 from flask import jsonify, request, url_for, abort
 from flask import current_app as app  # Import Flask application
-from service.models import Recommendation
+from service.models import Recommendation, RecommendationType
 from service.common import status  # HTTP Status Codes
 
 
@@ -33,19 +33,87 @@ from service.common import status  # HTTP Status Codes
 @app.route("/")
 def index():
     """Root URL response"""
+    app.logger.info("Request for Root URL")
     return (
-        "Reminder: return some useful information in json format about the service here",
+        jsonify(
+            {
+                "name": "Recommendation REST API Service",
+                "version": "1.0.0",
+                "paths": {
+                    "list": "/recommendations",
+                },
+            }
+        ),
         status.HTTP_200_OK,
     )
 
 
 ######################################################################
-#  R E S T   A P I   E N D P O I N T S
+# LIST ALL RECOMMENDATIONS
 ######################################################################
+@app.route("/recommendations", methods=["GET"])
+def list_recommendations():
+    """Returns all of the Recommendations"""
+    app.logger.info("Request for recommendations list")
+
+    recommendations = []
+
+    # Parse any arguments from the query string
+    recommendation_type = request.args.get("recommendation_type")
+    source_product_id = request.args.get("source_product_id")
+
+    if recommendation_type:
+        app.logger.info("Find by recommendation_type: %s", recommendation_type)
+        # convert string value to enum e.g. "cross_sell" -> RecommendationType.CROSS_SELL
+        try:
+            type_enum = RecommendationType[recommendation_type.upper()]
+        except KeyError:
+            abort(
+                status.HTTP_400_BAD_REQUEST,
+                f"Invalid recommendation_type: {recommendation_type}",
+            )
+        recommendations = Recommendation.find_by_type(type_enum)
+    elif source_product_id:
+        app.logger.info("Find by source_product_id: %s", source_product_id)
+        recommendations = Recommendation.find_by_source_product_id(
+            int(source_product_id)
+        )
+    else:
+        app.logger.info("Find all")
+        recommendations = Recommendation.all()
+
+    results = [r.serialize() for r in recommendations]
+    app.logger.info("Returning %d recommendations", len(results))
+    return jsonify(results), status.HTTP_200_OK
 
 
 ######################################################################
-# CREATE A NEW Recommendation
+# READ A RECOMMENDATION
+######################################################################
+@app.route("/recommendations/<int:recommendation_id>", methods=["GET"])
+def get_recommendations(recommendation_id):
+    """
+    Retrieve a single Recommendation
+
+    This endpoint will return a Recommendation based on its id
+    """
+    app.logger.info(
+        "Request to Retrieve a recommendation with id [%s]", recommendation_id
+    )
+
+    recommendation = Recommendation.find(recommendation_id)
+    if not recommendation:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Recommendation with id '{recommendation_id}' was not found.",
+        )
+
+    app.logger.info("Returning recommendation: %s", recommendation.id)
+    return jsonify(recommendation.serialize()), status.HTTP_200_OK
+
+
+######################################################################
+# CREATE A NEW RECOMMENDATION
 ######################################################################
 @app.route("/recommendations", methods=["POST"])
 def create_recommendations():
@@ -57,26 +125,81 @@ def create_recommendations():
     check_content_type("application/json")
 
     recommendation = Recommendation()
-    # Get the data from the request and deserialize it
     data = request.get_json()
     app.logger.info("Processing: %s", data)
     recommendation.deserialize(data)
 
-    # Save the new Recommendation to the database
     recommendation.create()
     app.logger.info("Recommendation with new id [%s] saved!", recommendation.id)
 
-    # Return the location of the new Recommendation
-    # Todo: uncomment this code when get_recommendations is implemented
-    # location_url = url_for("get_recommendations", recommendation_id=recommendation.id, _external=True)
-
-    location_url = "unknown"
-
+    location_url = url_for(
+        "get_recommendations", recommendation_id=recommendation.id, _external=True
+    )
     return (
         jsonify(recommendation.serialize()),
         status.HTTP_201_CREATED,
         {"Location": location_url},
     )
+
+
+######################################################################
+# UPDATE AN EXISTING RECOMMENDATION
+######################################################################
+@app.route("/recommendations/<int:recommendation_id>", methods=["PUT"])
+def update_recommendations(recommendation_id):
+    """
+    Update a Recommendation
+
+    This endpoint will update a Recommendation based the body that is posted
+    """
+    app.logger.info(
+        "Request to Update a recommendation with id [%s]", recommendation_id
+    )
+    check_content_type("application/json")
+
+    recommendation = Recommendation.find(recommendation_id)
+    if not recommendation:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Recommendation with id '{recommendation_id}' was not found.",
+        )
+
+    data = request.get_json()
+    app.logger.info("Processing: %s", data)
+    recommendation.deserialize(data)
+
+    recommendation.update()
+
+    app.logger.info("Recommendation with ID: %d updated.", recommendation.id)
+    return jsonify(recommendation.serialize()), status.HTTP_200_OK
+
+
+######################################################################
+# DELETE A RECOMMENDATION
+######################################################################
+@app.route("/recommendations/<int:recommendation_id>", methods=["DELETE"])
+def delete_recommendations(recommendation_id):
+    """
+    Delete a Recommendation
+
+    This endpoint will delete a Recommendation based the id specified in the path
+    """
+    app.logger.info(
+        "Request to Delete a recommendation with id [%s]", recommendation_id
+    )
+
+    recommendation = Recommendation.find(recommendation_id)
+    if recommendation:
+        app.logger.info("Recommendation with ID: %d found.", recommendation.id)
+        recommendation.delete()
+
+    app.logger.info("Recommendation with ID: %d delete complete.", recommendation_id)
+    return {}, status.HTTP_204_NO_CONTENT
+
+
+######################################################################
+#  U T I L I T Y   F U N C T I O N S
+######################################################################
 
 
 ######################################################################
