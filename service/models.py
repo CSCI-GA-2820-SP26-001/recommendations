@@ -80,6 +80,8 @@ class Recommendation(db.Model):
     def update(self):
         """Updates a Recommendation to the database"""
         logger.info("Saving recommendation id=%s", self.id)
+        if not self.id:
+            raise DataValidationError("Update called with empty ID field")
         try:
             db.session.commit()
         except Exception as e:
