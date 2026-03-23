@@ -156,3 +156,12 @@ class TestRecommendation(TestCase):
         # See if we get back 5 recommendations
         recommendations = Recommendation.all()
         self.assertEqual(len(recommendations), 5)
+
+    def test_delete_a_recommendation(self):
+        """It should Delete a Recommendation"""
+        recommendation = RecommendationFactory()
+        recommendation.create()
+        self.assertEqual(len(Recommendation.all()), 1)
+        # Delete the recommendation and make sure it isn't in the database
+        recommendation.delete()
+        self.assertEqual(len(Recommendation.all()), 0)

@@ -23,7 +23,7 @@ and Delete Recommendation
 
 from flask import jsonify, request, url_for, abort
 from flask import current_app as app  # Import Flask application
-from service.models import Recommendation
+from service.models import Recommendation, RecommendationType
 from service.common import status  # HTTP Status Codes
 
 
@@ -166,6 +166,29 @@ def update_recommendations(recommendation_id):
 
     app.logger.info("Recommendation with ID: %d updated.", recommendation.id)
     return jsonify(recommendation.serialize()), status.HTTP_200_OK
+
+
+######################################################################
+# DELETE A RECOMMENDATION
+######################################################################
+@app.route("/recommendations/<int:recommendation_id>", methods=["DELETE"])
+def delete_recommendations(recommendation_id):
+    """
+    Delete a Recommendation
+
+    This endpoint will delete a Recommendation based the id specified in the path
+    """
+    app.logger.info(
+        "Request to Delete a recommendation with id [%s]", recommendation_id
+    )
+
+    recommendation = Recommendation.find(recommendation_id)
+    if recommendation:
+        app.logger.info("Recommendation with ID: %d found.", recommendation.id)
+        recommendation.delete()
+
+    app.logger.info("Recommendation with ID: %d delete complete.", recommendation_id)
+    return {}, status.HTTP_204_NO_CONTENT
 
 
 ######################################################################
