@@ -142,7 +142,6 @@ class TestRecommendationService(TestCase):
     def test_create_recommendation(self):
         """It should Create a new Recommendation"""
         test_recommendation = RecommendationFactory()
-        logging.debug("Test Recommendation: %s", test_recommendation.serialize())
         response = self.client.post(BASE_URL, json=test_recommendation.serialize())
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
