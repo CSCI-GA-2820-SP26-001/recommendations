@@ -15,7 +15,7 @@
 ######################################################################
 
 """
-Test cases for Pet Model
+Test cases for Recommendation Model
 """
 
 # pylint: disable=duplicate-code
@@ -25,6 +25,7 @@ from unittest import TestCase
 from wsgi import app
 from service.models import Recommendation, RecommendationType, DataValidationError, db
 from .factories import RecommendationFactory
+from unittest.mock import patch
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
@@ -144,7 +145,15 @@ class TestRecommendation(TestCase):
         recommendation.id = None
         self.assertRaises(DataValidationError, recommendation.update)
 
-    # Todo: Add your test cases here...
+    def test_delete_a_recommendation(self):
+        """It should Delete a Recommendation"""
+        recommendation = RecommendationFactory()
+        recommendation.create()
+        self.assertEqual(len(Recommendation.all()), 1)
+        # Delete the recommendation and make sure it isn't in the database
+        recommendation.delete()
+        self.assertEqual(len(Recommendation.all()), 0)
+
     def test_list_all_recommendations(self):
         """It should List all Recommendations in the database"""
         recommendations = Recommendation.all()
@@ -157,11 +166,93 @@ class TestRecommendation(TestCase):
         recommendations = Recommendation.all()
         self.assertEqual(len(recommendations), 5)
 
-    def test_delete_a_recommendation(self):
-        """It should Delete a Recommendation"""
+    def test_serialize_a_recommendation(self):
+        """It should serialize a Recommendation"""
+        recommendation = RecommendationFactory()
+        data = recommendation.serialize()
+        self.assertNotEqual(data, None)
+        self.assertIn("id", data)
+        self.assertEqual(data["id"], recommendation.id)
+        self.assertIn("source_product_id", data)
+        self.assertEqual(data["source_product_id"], recommendation.source_product_id)
+        self.assertIn("recommended_product_id", data)
+        self.assertEqual(
+            data["recommended_product_id"], recommendation.recommended_product_id
+        )
+        self.assertIn("recommendation_type", data)
+        self.assertEqual(
+            data["recommendation_type"], recommendation.recommendation_type.name
+        )
+
+    def test_deserialize_a_recommendation(self):
+        """It should de-serialize a Recommendation"""
+        data = RecommendationFactory().serialize()
+        recommendation = Recommendation()
+        recommendation.deserialize(data)
+        self.assertNotEqual(recommendation, None)
+        self.assertEqual(recommendation.id, None)
+        self.assertEqual(recommendation.source_product_id, data["source_product_id"])
+        self.assertEqual(
+            recommendation.recommended_product_id, data["recommended_product_id"]
+        )
+        self.assertEqual(
+            recommendation.recommendation_type.name, data["recommendation_type"]
+        )
+
+    def test_deserialize_missing_data(self):
+        """It should not deserialize a Recommendation with missing data"""
+        data = {"source_product_id": 1}
+        recommendation = Recommendation()
+        self.assertRaises(DataValidationError, recommendation.deserialize, data)
+
+    def test_deserialize_bad_data(self):
+        """It should not deserialize bad data"""
+        data = "this is not a dictionary"
+        recommendation = Recommendation()
+        self.assertRaises(DataValidationError, recommendation.deserialize, data)
+
+    def test_deserialize_bad_recommendation_type(self):
+        """It should not deserialize a bad recommendation_type attribute"""
+        data = RecommendationFactory().serialize()
+        data["recommendation_type"] = "invalid_type"
+        recommendation = Recommendation()
+        self.assertRaises(DataValidationError, recommendation.deserialize, data)
+
+    # Additional test cases
+    def test_find_by_source_product_id(self):
+        """It should Find Recommendations by source_product_id"""
+        recommendations = RecommendationFactory.create_batch(3)
+        # create all with same source_product_id
+        source_id = recommendations[0].source_product_id
+        for rec in recommendations:
+            rec.source_product_id = source_id
+            rec.create()
+
+        found = Recommendation.find_by_source_product_id(source_id)
+        self.assertEqual(len(list(found)), 3)
+
+    def test_create_db_error(self):
+        """It should raise DataValidationError on create DB failure"""
+        recommendation = RecommendationFactory()
+        with patch(
+            "service.models.db.session.commit", side_effect=Exception("DB error")
+        ):
+            self.assertRaises(DataValidationError, recommendation.create)
+
+    def test_update_db_error(self):
+        """It should raise DataValidationError on update DB failure"""
         recommendation = RecommendationFactory()
         recommendation.create()
-        self.assertEqual(len(Recommendation.all()), 1)
-        # Delete the recommendation and make sure it isn't in the database
-        recommendation.delete()
-        self.assertEqual(len(Recommendation.all()), 0)
+        with patch(
+            "service.models.db.session.commit", side_effect=Exception("DB error")
+        ):
+            self.assertRaises(DataValidationError, recommendation.update)
+
+    def test_delete_db_error(self):
+        """It should raise DataValidationError on delete DB failure"""
+        recommendation = RecommendationFactory()
+        recommendation.create()
+        with patch(
+            "service.models.db.session.delete", side_effect=Exception("DB error")
+        ):
+            self.assertRaises(DataValidationError, recommendation.delete)

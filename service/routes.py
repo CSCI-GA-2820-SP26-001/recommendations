@@ -18,7 +18,7 @@
 Recommendation Service
 
 This service implements a REST API that allows you to Create, Read, Update
-and Delete Recommendation
+and Delete Recommendations
 """
 
 from flask import jsonify, request, url_for, abort
@@ -48,9 +48,6 @@ def index():
     )
 
 
-######################################################################
-#  R E S T   A P I   E N D P O I N T S
-######################################################################
 ######################################################################
 # LIST ALL RECOMMENDATIONS
 ######################################################################
@@ -198,6 +195,11 @@ def delete_recommendations(recommendation_id):
 
     app.logger.info("Recommendation with ID: %d delete complete.", recommendation_id)
     return {}, status.HTTP_204_NO_CONTENT
+
+
+######################################################################
+#  U T I L I T Y   F U N C T I O N S
+######################################################################
 
 
 ######################################################################

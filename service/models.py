@@ -154,16 +154,26 @@ class Recommendation(db.Model):
 
     @classmethod
     def find(cls, by_id):
-        """Finds a Recommendation by it's ID"""
+        """Finds a Recommendation by its ID"""
         logger.info("Processing lookup for id %s ...", by_id)
         return cls.query.session.get(cls, by_id)
 
     @classmethod
-    def find_by_name(cls, name):
-        """Returns all Recommendations with the given name
+    def find_by_type(cls, recommendation_type: RecommendationType) -> list:
+        """Returns all Recommendations with the given type
 
         Args:
-            name (string): the name of the Recommendations you want to match
+            recommendation_type (RecommendationType): the type to match
         """
-        logger.info("Processing name query for %s ...", name)
-        return cls.query.filter(cls.name == name)
+        logger.info("Processing type query for %s ...", recommendation_type)
+        return cls.query.filter(cls.recommendation_type == recommendation_type)
+
+    @classmethod
+    def find_by_source_product_id(cls, source_product_id: int) -> list:
+        """Returns all Recommendations with the given source_product_id
+
+        Args:
+            source_product_id (int): the source product id to match
+        """
+        logger.info("Processing source_product_id query for %s ...", source_product_id)
+        return cls.query.filter(cls.source_product_id == source_product_id)
