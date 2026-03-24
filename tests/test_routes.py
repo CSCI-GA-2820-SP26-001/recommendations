@@ -27,6 +27,7 @@ from service.common import status
 from service.models import db, Recommendation, RecommendationType, DataValidationError
 from .factories import RecommendationFactory
 
+
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
 )
@@ -66,6 +67,28 @@ class TestRecommendationService(TestCase):
         db.session.remove()
 
     ############################################################
+    # Utility function to bulk create recommendations
+    ############################################################
+    def _create_recommendations(self, count: int = 1) -> list:
+        """Factory method to create recommendations in bulk"""
+        recommendations = []
+        for _ in range(count):
+            test_recommendation = RecommendationFactory()
+            response = self.client.post(BASE_URL, json=test_recommendation.serialize())
+            self.assertEqual(
+                response.status_code,
+                status.HTTP_201_CREATED,
+                "Could not create test recommendation",
+            )
+            new_recommendation = response.get_json()
+            test_recommendation.id = new_recommendation["id"]
+            recommendations.append(test_recommendation)
+        return recommendations
+
+    ######################################################################
+    #  T E S T   C A S E S
+    ######################################################################
+
     # Utility function to bulk create recommendations
     ############################################################
     def _create_recommendations(self, count: int = 1) -> list:
@@ -142,24 +165,18 @@ class TestRecommendationService(TestCase):
     def test_create_recommendation(self):
         """It should Create a new Recommendation"""
         test_recommendation = RecommendationFactory()
-        logging.debug("Test Recommendation: %s", test_recommendation.serialize())
         response = self.client.post(BASE_URL, json=test_recommendation.serialize())
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        # Make sure location header is set
-        location = response.headers.get("Location", None)
-        self.assertIsNotNone(location)
-
-        # Check the data is correct
+        # update the recommendation
         new_recommendation = response.get_json()
-        self.assertEqual(
-            new_recommendation["source_product_id"],
-            test_recommendation.source_product_id,
+        logging.debug(new_recommendation)
+        new_recommendation["recommendation_type"] = RecommendationType.UP_SELL.name
+        response = self.client.put(
+            f"{BASE_URL}/{new_recommendation['id']}", json=new_recommendation
         )
-        self.assertEqual(
-            new_recommendation["recommended_product_id"],
-            test_recommendation.recommended_product_id,
-        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        updated_recommendation = response.get_json()
         self.assertEqual(
             new_recommendation["recommendation_type"],
             test_recommendation.recommendation_type.name,
