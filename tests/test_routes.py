@@ -246,6 +246,7 @@ class TestRecommendationService(TestCase):
     # ----------------------------------------------------------
     # TEST QUERY
     # ----------------------------------------------------------
+    #query recommendations by type
     def test_query_by_recommendation_type(self):
         """It should Query Recommendations by type"""
         recommendations = self._create_recommendations(10)
