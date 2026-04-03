@@ -153,6 +153,7 @@ class Recommendation(db.Model):
         logger.info("Processing all Recommendations")
         return cls.query.all()
 
+    #query recommendation by ID
     @classmethod
     def find(cls, by_id):
         """Finds a Recommendation by its ID"""

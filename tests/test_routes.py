@@ -135,6 +135,7 @@ class TestRecommendationService(TestCase):
     # ----------------------------------------------------------
     # TEST READ
     # ----------------------------------------------------------
+    # query recommendation by ID
     def test_get_recommendation(self):
         """It should Get a single Recommendation"""
         test_recommendation = self._create_recommendations(1)[0]
