@@ -160,6 +160,7 @@ class Recommendation(db.Model):
         logger.info("Processing lookup for id %s ...", by_id)
         return cls.query.session.get(cls, by_id)
 
+    #query recommendation by type
     @classmethod
     def find_by_type(cls, recommendation_type: RecommendationType) -> list:
         """Returns all Recommendations with the given type
