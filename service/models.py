@@ -36,6 +36,7 @@ class Recommendation(db.Model):
     ##################################################
     __tablename__ = "recommendations"
 
+    #Reject Duplicate Recommendation Relationships
     __table_args__ = (
         db.UniqueConstraint(
             "source_product_id",
