@@ -170,6 +170,7 @@ class Recommendation(db.Model):
         logger.info("Processing type query for %s ...", recommendation_type)
         return cls.query.filter(cls.recommendation_type == recommendation_type)
 
+    #query recommendation by productID
     @classmethod
     def find_by_source_product_id(cls, source_product_id: int) -> list:
         """Returns all Recommendations with the given source_product_id

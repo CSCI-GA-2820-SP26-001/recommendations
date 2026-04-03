@@ -262,6 +262,7 @@ class TestRecommendationService(TestCase):
         for rec in data:
             self.assertEqual(rec["recommendation_type"], test_type.name)
 
+    #query recommendations by productID
     def test_query_by_source_product_id(self):
         """It should Query Recommendations by source_product_id"""
         recommendations = self._create_recommendations(10)
