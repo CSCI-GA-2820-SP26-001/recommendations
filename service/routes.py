@@ -51,6 +51,7 @@ def index():
 ######################################################################
 # LIST ALL RECOMMENDATIONS
 ######################################################################
+# query recommendations by productID
 @app.route("/recommendations", methods=["GET"])
 def list_recommendations():
     """Returns all of the Recommendations"""
