@@ -90,6 +90,7 @@ def list_recommendations():
 ######################################################################
 # READ A RECOMMENDATION
 ######################################################################
+# query to recommendations by ID
 @app.route("/recommendations/<int:recommendation_id>", methods=["GET"])
 def get_recommendations(recommendation_id):
     """
