@@ -200,6 +200,37 @@ def delete_recommendations(recommendation_id):
 
 
 ######################################################################
+# LIKE A RECOMMENDATION (ACTION)
+######################################################################
+@app.route("/recommendations/<int:recommendation_id>/like", methods=["PUT"])
+def like_recommendation(recommendation_id):
+    """
+    Like a Recommendation
+
+    This endpoint performs a stateful action that increments the like
+    count on a recommendation. It is NOT a CRUD operation.
+    """
+    app.logger.info("Request to like recommendation with id [%s]", recommendation_id)
+
+    recommendation = Recommendation.find(recommendation_id)
+    if not recommendation:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Recommendation with id '{recommendation_id}' was not found.",
+        )
+
+    recommendation.like_count += 1
+    recommendation.update()
+
+    app.logger.info(
+        "Recommendation with ID: %d liked. Count: %d",
+        recommendation.id,
+        recommendation.like_count,
+    )
+    return jsonify(recommendation.serialize()), status.HTTP_200_OK
+
+
+######################################################################
 #  U T I L I T Y   F U N C T I O N S
 ######################################################################
 

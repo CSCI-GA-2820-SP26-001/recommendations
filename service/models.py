@@ -36,7 +36,7 @@ class Recommendation(db.Model):
     ##################################################
     __tablename__ = "recommendations"
 
-    #Reject Duplicate Recommendation Relationships
+    # Reject Duplicate Recommendation Relationships
     __table_args__ = (
         db.UniqueConstraint(
             "source_product_id",
@@ -54,6 +54,7 @@ class Recommendation(db.Model):
     source_product_id = db.Column(db.Integer, nullable=False)
     recommended_product_id = db.Column(db.Integer, nullable=False)
     recommendation_type = db.Column(db.Enum(RecommendationType), nullable=False)
+    like_count = db.Column(db.Integer, default=0, nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.now(), nullable=False)
     updated_at = db.Column(
         db.DateTime, default=db.func.now(), onupdate=db.func.now(), nullable=False
@@ -108,6 +109,7 @@ class Recommendation(db.Model):
             "source_product_id": self.source_product_id,
             "recommended_product_id": self.recommended_product_id,
             "recommendation_type": self.recommendation_type.name,
+            "like_count": self.like_count,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
@@ -153,14 +155,14 @@ class Recommendation(db.Model):
         logger.info("Processing all Recommendations")
         return cls.query.all()
 
-    #query recommendation by ID
+    # query recommendation by ID
     @classmethod
     def find(cls, by_id):
         """Finds a Recommendation by its ID"""
         logger.info("Processing lookup for id %s ...", by_id)
         return cls.query.session.get(cls, by_id)
 
-    #query recommendation by type
+    # query recommendation by type
     @classmethod
     def find_by_type(cls, recommendation_type: RecommendationType) -> list:
         """Returns all Recommendations with the given type
@@ -171,7 +173,7 @@ class Recommendation(db.Model):
         logger.info("Processing type query for %s ...", recommendation_type)
         return cls.query.filter(cls.recommendation_type == recommendation_type)
 
-    #query recommendation by productID
+    # query recommendation by productID
     @classmethod
     def find_by_source_product_id(cls, source_product_id: int) -> list:
         """Returns all Recommendations with the given source_product_id

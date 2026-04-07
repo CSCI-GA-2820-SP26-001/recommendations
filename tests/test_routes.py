@@ -244,9 +244,39 @@ class TestRecommendationService(TestCase):
         self.assertEqual(len(response.data), 0)
 
     # ----------------------------------------------------------
+    # TEST LIKE ACTION
+    # ----------------------------------------------------------
+    def test_like_recommendation(self):
+        """It should increment the like count on a Recommendation"""
+        test_recommendation = self._create_recommendations(1)[0]
+        response = self.client.put(f"{BASE_URL}/{test_recommendation.id}/like")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(data["like_count"], 1)
+
+        # Like it again — count should increment
+        response = self.client.put(f"{BASE_URL}/{test_recommendation.id}/like")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(data["like_count"], 2)
+
+        # Verify it's visible via GET
+        response = self.client.get(f"{BASE_URL}/{test_recommendation.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(data["like_count"], 2)
+
+    def test_like_recommendation_not_found(self):
+        """It should return 404 when liking a non-existent Recommendation"""
+        response = self.client.put(f"{BASE_URL}/0/like")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        data = response.get_json()
+        self.assertIn("was not found", data["message"])
+
+    # ----------------------------------------------------------
     # TEST QUERY
     # ----------------------------------------------------------
-    #query recommendations by type
+    # query recommendations by type
     def test_query_by_recommendation_type(self):
         """It should Query Recommendations by type"""
         recommendations = self._create_recommendations(10)
@@ -263,7 +293,7 @@ class TestRecommendationService(TestCase):
         for rec in data:
             self.assertEqual(rec["recommendation_type"], test_type.name)
 
-    #query recommendations by productID
+    # query recommendations by productID
     def test_query_by_source_product_id(self):
         """It should Query Recommendations by source_product_id"""
         recommendations = self._create_recommendations(10)
