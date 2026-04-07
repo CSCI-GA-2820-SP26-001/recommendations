@@ -28,7 +28,7 @@ jobs:
           --health-retries 5
 
     env:
-      DATABASE_URI: "postgresql+psycopg2://postgres:pgs3cr3t@localhost:5432/testdb"
+      DATABASE_URI: "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
 
     steps:
       - name: Checkout code
