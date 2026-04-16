@@ -16,6 +16,8 @@ gunicorn = "~=25.0.0"
 pylint = "~=4.0.4"
 flake8 = "~=7.3.0"
 black = "~=26.1.0"
+behave = "~=1.2.6"
+selenium = "~=4.27.1"
 
 # Test-Driven Development
 pytest = "~=9.0.2"

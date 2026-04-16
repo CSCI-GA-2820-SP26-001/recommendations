@@ -144,6 +144,36 @@ This runs all unit and integration tests with coverage reporting. The minimum co
 
 ---
 
+## Running BDD Tests
+
+This project uses [Behave](https://behave.readthedocs.io/) and [Selenium](https://selenium-python.readthedocs.io/) for BDD (Behavior-Driven Development) testing against the UI.
+
+### Setup
+
+Make sure `behave` and `selenium` are installed:
+
+```bash
+pip3 install behave selenium
+```
+
+### Running the Tests
+
+First, make sure the Flask service is running:
+
+```bash
+flask run
+```
+
+Then in a separate terminal, run:
+
+```bash
+behave
+```
+
+Feature files are located in the `features/` folder. Step definitions are in `features/steps/`.
+
+---
+
 ## License
 
 Copyright (c) 2016, 2025 [John Rofrano](https://www.linkedin.com/in/JohnRofrano/). All rights reserved.
