@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Recommendations RESTful Service</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="static/css/cerulean_bootstrap.min.css">
+  </head>
+  <body>
+    <div class="container">
+      <div class="page-header">
+        <h1>Recommendations REST API Service</h1>
+      </div>
+
+      <!-- Flash Message -->
+      <div class="table-responsive">
+        <table class="table">
+          <tr><td>Status:</td><td><span id="flash_message"></span></td></tr>
+        </table>
+      </div>
+
+      <!-- FORM -->
+      <div class="col-md-12" id="form_data">
+        <h3>Create a Recommendation:</h3>
+        <div class="well">
+          <div class="form-horizontal">
+
+            <!-- ID (read-only, shown after create) -->
+            <div class="form-group">
+              <label class="control-label col-sm-2" for="recommendation_id">ID:</label>
+              <div class="col-sm-10">
+                <input type="text" class="form-control" id="recommendation_id" placeholder="ID (assigned after create)" readonly>
+              </div>
+            </div>
+
+            <!-- SOURCE PRODUCT ID -->
+            <div class="form-group">
+              <label class="control-label col-sm-2" for="recommendation_source_product_id">Source Product ID:</label>
+              <div class="col-sm-10">
+                <input type="number" class="form-control" id="recommendation_source_product_id" placeholder="Enter Source Product ID">
+              </div>
+            </div>
+
+            <!-- RECOMMENDED PRODUCT ID -->
+            <div class="form-group">
+              <label class="control-label col-sm-2" for="recommendation_recommended_product_id">Recommended Product ID:</label>
+              <div class="col-sm-10">
+                <input type="number" class="form-control" id="recommendation_recommended_product_id" placeholder="Enter Recommended Product ID">
+              </div>
+            </div>
+
+            <!-- RECOMMENDATION TYPE -->
+            <div class="form-group">
+              <label class="control-label col-sm-2" for="recommendation_recommendation_type">Recommendation Type:</label>
+              <div class="col-sm-10">
+                <select class="form-control" id="recommendation_recommendation_type">
+                  <option value="CROSS_SELL" selected>Cross Sell</option>
+                  <option value="UP_SELL">Up Sell</option>
+                  <option value="ACCESSORY">Accessory</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- BUTTONS -->
+            <div class="form-group">
+              <div class="col-sm-offset-2 col-sm-10">
+                <button type="submit" class="btn btn-success" id="create-btn">Create</button>
+                <button type="submit" class="btn btn-primary" id="clear-btn">Clear</button>
+              </div>
+            </div>
+
+          </div> <!-- form horizontal -->
+        </div> <!-- end well -->
+      </div> <!-- end Form -->
+
+      <!-- Search Results -->
+      <div class="table-responsive col-md-12" id="search_results">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th class="col-md-1">ID</th>
+              <th class="col-md-2">Source Product ID</th>
+              <th class="col-md-2">Recommended Product ID</th>
+              <th class="col-md-2">Type</th>
+              <th class="col-md-1">Likes</th>
+            </tr>
+          </thead>
+          <tbody id="search_results_body">
+          </tbody>
+        </table>
+      </div>
+
+      <footer>
+        <br><br>
+        <p>&copy; NYU DevOps 2025</p>
+      </footer>
+
+    </div> <!-- container -->
+
+    <script type="text/javascript" src="static/js/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" src="static/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="static/js/rest_api.js"></script>
+  </body>
+</html>

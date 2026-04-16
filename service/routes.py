@@ -34,18 +34,7 @@ from service.common import status  # HTTP Status Codes
 def index():
     """Root URL response"""
     app.logger.info("Request for Root URL")
-    return (
-        jsonify(
-            {
-                "name": "Recommendation REST API Service",
-                "version": "1.0.0",
-                "paths": {
-                    "list": "/recommendations",
-                },
-            }
-        ),
-        status.HTTP_200_OK,
-    )
+    return app.send_static_file("index.html")
 
 ######################################################################
 # HEALTH CHECK
