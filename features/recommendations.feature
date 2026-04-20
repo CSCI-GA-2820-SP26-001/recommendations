@@ -61,3 +61,23 @@ Feature: Recommendations Service
         And I press the "Update" button
         Then I should see the message "was not found"
 
+    Scenario: Delete an existing Recommendation
+        When I visit the "Home Page"
+        Then I should see "Recommendations" in the title
+        When I set the "Source Product ID" to "50"
+        And I set the "Recommended Product ID" to "60"
+        And I select "Cross Sell" in the "Recommendation Type" dropdown
+        And I press the "Create" button
+        Then I should see the message "Recommendation created successfully!"
+        When I copy the "ID" field
+        And I press the "Clear" button
+        And I paste the "Delete ID" field
+        And I press the "Delete" button
+        Then I should see the message "Recommendation deleted successfully!"
+
+    Scenario: Delete a non-existent Recommendation returns 404
+        When I visit the "Home Page"
+        Then I should see "Recommendations" in the title
+        When I set the "Delete ID" to "999999"
+        And I press the "Delete" button
+        Then I should see the message "was not found"
