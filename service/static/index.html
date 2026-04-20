@@ -113,6 +113,57 @@
         </div> <!-- end well -->
       </div> <!-- end Read Form -->
 
+      <!-- UPDATE FORM -->
+      <div class="col-md-12" id="update_form">
+        <h3>Update a Recommendation:</h3>
+        <div class="well">
+          <div class="form-horizontal">
+
+            <!-- UPDATE ID -->
+            <div class="form-group">
+              <label class="control-label col-sm-2" for="recommendation_update_id">ID:</label>
+              <div class="col-sm-10">
+                <input type="number" class="form-control" id="recommendation_update_id" placeholder="Enter Recommendation ID">
+              </div>
+            </div>
+
+            <!-- UPDATE RECOMMENDATION TYPE -->
+            <div class="form-group">
+              <label class="control-label col-sm-2" for="recommendation_update_type">Recommendation Type:</label>
+              <div class="col-sm-10">
+                <select class="form-control" id="recommendation_update_type">
+                  <option value="CROSS_SELL" selected>Cross Sell</option>
+                  <option value="UP_SELL">Up Sell</option>
+                  <option value="ACCESSORY">Accessory</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- UPDATE BUTTON -->
+            <div class="form-group">
+              <div class="col-sm-offset-2 col-sm-10">
+                <button type="submit" class="btn btn-warning" id="update-btn">Update</button>
+              </div>
+            </div>
+
+            <!-- UPDATE RESULTS -->
+            <div class="form-group">
+              <label class="control-label col-sm-2">Result:</label>
+              <div class="col-sm-10">
+                <p>ID: <span id="update_result_id"></span></p>
+                <p>Source Product ID: <span id="update_result_source_product_id"></span></p>
+                <p>Recommended Product ID: <span id="update_result_recommended_product_id"></span></p>
+                <p>Recommendation Type: <span id="update_result_recommendation_type"></span></p>
+                <p>Like Count: <span id="update_result_like_count"></span></p>
+                <p>Created At: <span id="update_result_created_at"></span></p>
+                <p>Updated At: <span id="update_result_updated_at"></span></p>
+              </div>
+            </div>
+
+          </div> <!-- form horizontal -->
+        </div> <!-- end well -->
+      </div> <!-- end Update Form -->
+
       <!-- Search Results -->
       <div class="table-responsive col-md-12" id="search_results">
         <table class="table table-striped">
