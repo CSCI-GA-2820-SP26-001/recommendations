@@ -77,7 +77,6 @@ $(function () {
     $("#read-btn").click(function () {
         let rec_id = $("#recommendation_read_id").val();
 
-        // Clear previous results
         $("#read_result_id").text("");
         $("#read_result_source_product_id").text("");
         $("#read_result_recommended_product_id").text("");
@@ -119,7 +118,6 @@ $(function () {
         });
     });
 
-
     // ****************************************
     // Update a Recommendation's Type
     // ****************************************
@@ -127,7 +125,6 @@ $(function () {
         let rec_id = $("#recommendation_update_id").val();
         let new_type = $("#recommendation_update_type").val();
 
-        // Clear previous update results
         $("#update_result_id").text("");
         $("#update_result_source_product_id").text("");
         $("#update_result_recommended_product_id").text("");
@@ -142,7 +139,6 @@ $(function () {
             return;
         }
 
-        // First GET the existing recommendation so we can send a full payload on PUT
         let getAjax = $.ajax({
             type: "GET",
             url: `/recommendations/${rec_id}`,
@@ -184,7 +180,16 @@ $(function () {
             });
         });
 
-        
+        getAjax.fail(function (res) {
+            if (res.status === 404) {
+                $("#flash_message").text(`Recommendation with id '${rec_id}' was not found.`);
+            } else {
+                let msg = (res.responseJSON && res.responseJSON.message) || "Error updating recommendation";
+                $("#flash_message").text(msg);
+            }
+        });
+    });
+
     // ****************************************
     // Delete a Recommendation by ID
     // ****************************************
@@ -219,20 +224,9 @@ $(function () {
         });
     });
 
-        
-        getAjax.fail(function (res) {
-            if (res.status === 404) {
-                $("#flash_message").text(`Recommendation with id '${rec_id}' was not found.`);
-            } else {
-                let msg = (res.responseJSON && res.responseJSON.message) || "Error updating recommendation";
-                $("#flash_message").text(msg);
-            }
-        });
-    });
-
-// ****************************************
-// List All Recommendations
-// ****************************************
+    // ****************************************
+    // List All Recommendations
+    // ****************************************
     $("#list_all-btn").click(function () {
         $("#flash_message").text("");
         $("#search_results_body").empty();
@@ -272,3 +266,60 @@ $(function () {
             $("#flash_message").text(msg);
         });
     });
+
+    // ****************************************
+    // Search / Query Recommendations
+    // ****************************************
+    $("#search-btn").click(function () {
+        let source_product_id = $("#recommendation_query_source_product_id").val();
+        let recommendation_type = $("#recommendation_query_type").val();
+
+        $("#flash_message").text("");
+        $("#search_results_body").empty();
+
+        let params = [];
+        if (source_product_id) {
+            params.push(`source_product_id=${encodeURIComponent(source_product_id)}`);
+        }
+        if (recommendation_type) {
+            params.push(`recommendation_type=${encodeURIComponent(recommendation_type)}`);
+        }
+        let queryString = params.length > 0 ? `?${params.join("&")}` : "";
+
+        let ajax = $.ajax({
+            type: "GET",
+            url: `/recommendations${queryString}`,
+            contentType: "application/json"
+        });
+
+        ajax.done(function (res) {
+            let tbody = $("#search_results_body");
+            tbody.empty();
+
+            if (!res || res.length === 0) {
+                tbody.append(`<tr><td colspan="5">No recommendations found</td></tr>`);
+                $("#flash_message").text("No recommendations found");
+                return;
+            }
+
+            for (let i = 0; i < res.length; i++) {
+                let rec = res[i];
+                tbody.append(`<tr>
+                    <td>${rec.id}</td>
+                    <td>${rec.source_product_id}</td>
+                    <td>${rec.recommended_product_id}</td>
+                    <td>${rec.recommendation_type}</td>
+                    <td>${rec.like_count}</td>
+                </tr>`);
+            }
+
+            $("#flash_message").text("Search completed successfully!");
+        });
+
+        ajax.fail(function (res) {
+            let msg = (res.responseJSON && res.responseJSON.message) || "Error searching recommendations";
+            $("#flash_message").text(msg);
+        });
+    });
+
+});
