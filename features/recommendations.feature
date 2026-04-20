@@ -37,3 +37,27 @@ Feature: Recommendations Service
         When I set the "Read ID" to "999999"
         And I press the "Read" button
         Then I should see the message "was not found"
+
+    Scenario: Update an existing Recommendation's type
+        When I visit the "Home Page"
+        Then I should see "Recommendations" in the title
+        When I set the "Source Product ID" to "30"
+        And I set the "Recommended Product ID" to "40"
+        And I select "Cross Sell" in the "Recommendation Type" dropdown
+        And I press the "Create" button
+        Then I should see the message "Recommendation created successfully!"
+        When I copy the "ID" field
+        And I press the "Clear" button
+        And I paste the "Update ID" field
+        And I select "Up Sell" in the "Update Type" dropdown
+        And I press the "Update" button
+        Then I should see the message "Recommendation updated successfully!"
+
+    Scenario: Update a non-existent Recommendation returns 404
+        When I visit the "Home Page"
+        Then I should see "Recommendations" in the title
+        When I set the "Update ID" to "999999"
+        And I select "Up Sell" in the "Update Type" dropdown
+        And I press the "Update" button
+        Then I should see the message "was not found"
+
