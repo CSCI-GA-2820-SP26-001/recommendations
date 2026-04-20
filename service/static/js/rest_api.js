@@ -18,6 +18,15 @@ $(function () {
         $("#read_result_updated_at").text("");
         $("#flash_message").text("");
         $("#search_results_body").empty();
+        $("#recommendation_update_id").val("");
+        $("#recommendation_update_type").val("CROSS_SELL");
+        $("#update_result_id").text("");
+        $("#update_result_source_product_id").text("");
+        $("#update_result_recommended_product_id").text("");
+        $("#update_result_recommendation_type").text("");
+        $("#update_result_like_count").text("");
+        $("#update_result_created_at").text("");
+        $("#update_result_updated_at").text("");
     });
 
     // ****************************************
@@ -105,6 +114,81 @@ $(function () {
                 $("#flash_message").text(`Recommendation with id '${rec_id}' was not found.`);
             } else {
                 let msg = (res.responseJSON && res.responseJSON.message) || "Error reading recommendation";
+                $("#flash_message").text(msg);
+            }
+        });
+    });
+
+
+    // ****************************************
+    // Update a Recommendation's Type
+    // ****************************************
+    $("#update-btn").click(function () {
+        let rec_id = $("#recommendation_update_id").val();
+        let new_type = $("#recommendation_update_type").val();
+
+        // Clear previous update results
+        $("#update_result_id").text("");
+        $("#update_result_source_product_id").text("");
+        $("#update_result_recommended_product_id").text("");
+        $("#update_result_recommendation_type").text("");
+        $("#update_result_like_count").text("");
+        $("#update_result_created_at").text("");
+        $("#update_result_updated_at").text("");
+        $("#flash_message").text("");
+
+        if (!rec_id) {
+            $("#flash_message").text("Please enter a Recommendation ID");
+            return;
+        }
+
+        // First GET the existing recommendation so we can send a full payload on PUT
+        let getAjax = $.ajax({
+            type: "GET",
+            url: `/recommendations/${rec_id}`,
+            contentType: "application/json"
+        });
+
+        getAjax.done(function (existing) {
+            let data = {
+                "source_product_id": existing.source_product_id,
+                "recommended_product_id": existing.recommended_product_id,
+                "recommendation_type": new_type
+            };
+
+            let putAjax = $.ajax({
+                type: "PUT",
+                url: `/recommendations/${rec_id}`,
+                contentType: "application/json",
+                data: JSON.stringify(data)
+            });
+
+            putAjax.done(function (res) {
+                $("#update_result_id").text(res.id);
+                $("#update_result_source_product_id").text(res.source_product_id);
+                $("#update_result_recommended_product_id").text(res.recommended_product_id);
+                $("#update_result_recommendation_type").text(res.recommendation_type);
+                $("#update_result_like_count").text(res.like_count);
+                $("#update_result_created_at").text(res.created_at);
+                $("#update_result_updated_at").text(res.updated_at);
+                $("#flash_message").text("Recommendation updated successfully!");
+            });
+
+            putAjax.fail(function (res) {
+                if (res.status === 404) {
+                    $("#flash_message").text(`Recommendation with id '${rec_id}' was not found.`);
+                } else {
+                    let msg = (res.responseJSON && res.responseJSON.message) || "Error updating recommendation";
+                    $("#flash_message").text(msg);
+                }
+            });
+        });
+
+        getAjax.fail(function (res) {
+            if (res.status === 404) {
+                $("#flash_message").text(`Recommendation with id '${rec_id}' was not found.`);
+            } else {
+                let msg = (res.responseJSON && res.responseJSON.message) || "Error updating recommendation";
                 $("#flash_message").text(msg);
             }
         });
