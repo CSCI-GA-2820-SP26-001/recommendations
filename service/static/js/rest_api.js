@@ -184,6 +184,42 @@ $(function () {
             });
         });
 
+        
+    // ****************************************
+    // Delete a Recommendation by ID
+    // ****************************************
+    $("#delete-btn").click(function () {
+        let rec_id = $("#recommendation_delete_id").val();
+
+        $("#flash_message").text("");
+
+        if (!rec_id) {
+            $("#flash_message").text("Please enter a Recommendation ID");
+            return;
+        }
+
+        let ajax = $.ajax({
+            type: "DELETE",
+            url: `/recommendations/${rec_id}`,
+            contentType: "application/json"
+        });
+
+        ajax.done(function () {
+            $("#recommendation_delete_id").val("");
+            $("#flash_message").text("Recommendation deleted successfully!");
+        });
+
+        ajax.fail(function (res) {
+            if (res.status === 404) {
+                $("#flash_message").text(`Recommendation with id '${rec_id}' was not found.`);
+            } else {
+                let msg = (res.responseJSON && res.responseJSON.message) || "Error deleting recommendation";
+                $("#flash_message").text(msg);
+            }
+        });
+    });
+
+        
         getAjax.fail(function (res) {
             if (res.status === 404) {
                 $("#flash_message").text(`Recommendation with id '${rec_id}' was not found.`);
