@@ -230,4 +230,45 @@ $(function () {
         });
     });
 
-});
+// ****************************************
+// List All Recommendations
+// ****************************************
+    $("#list_all-btn").click(function () {
+        $("#flash_message").text("");
+        $("#search_results_body").empty();
+
+        let ajax = $.ajax({
+            type: "GET",
+            url: "/recommendations",
+            contentType: "application/json"
+        });
+
+        ajax.done(function (res) {
+            let tbody = $("#search_results_body");
+            tbody.empty();
+
+            if (!res || res.length === 0) {
+                tbody.append(`<tr><td colspan="5">No recommendations found</td></tr>`);
+                $("#flash_message").text("No recommendations found");
+                return;
+            }
+
+            for (let i = 0; i < res.length; i++) {
+                let rec = res[i];
+                tbody.append(`<tr>
+                    <td>${rec.id}</td>
+                    <td>${rec.source_product_id}</td>
+                    <td>${rec.recommended_product_id}</td>
+                    <td>${rec.recommendation_type}</td>
+                    <td>${rec.like_count}</td>
+                </tr>`);
+            }
+
+            $("#flash_message").text("Recommendations listed successfully!");
+        });
+
+        ajax.fail(function (res) {
+            let msg = (res.responseJSON && res.responseJSON.message) || "Error listing recommendations";
+            $("#flash_message").text(msg);
+        });
+    });

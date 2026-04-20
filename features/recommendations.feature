@@ -61,6 +61,27 @@ Feature: Recommendations Service
         And I press the "Update" button
         Then I should see the message "was not found"
 
+    Scenario: List all Recommendations when some exist
+        When I visit the "Home Page"
+        Then I should see "Recommendations" in the title
+        When I set the "Source Product ID" to "100"
+        And I set the "Recommended Product ID" to "200"
+        And I select "Cross Sell" in the "Recommendation Type" dropdown
+        And I press the "Create" button
+        Then I should see the message "Recommendation created successfully!"
+        When I press the "Clear" button
+        And I press the "List All" button
+        Then I should see the message "Recommendations listed successfully!"
+        And I should see "100" in the results
+        And I should see "200" in the results
+        And I should see "CROSS_SELL" in the results
+
+    Scenario: List all Recommendations when none exist
+        When I visit the "Home Page"
+        Then I should see "Recommendations" in the title
+        When I press the "List All" button
+        Then I should see the message "No recommendations found"
+
     Scenario: Delete an existing Recommendation
         When I visit the "Home Page"
         Then I should see "Recommendations" in the title
