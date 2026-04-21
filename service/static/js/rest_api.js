@@ -27,6 +27,12 @@ $(function () {
         $("#update_result_like_count").text("");
         $("#update_result_created_at").text("");
         $("#update_result_updated_at").text("");
+        $("#recommendation_like_id").val("");
+        $("#like_result_id").text("");
+        $("#like_result_source_product_id").text("");
+        $("#like_result_recommended_product_id").text("");
+        $("#like_result_recommendation_type").text("");
+        $("#like_result_like_count").text("");
     });
 
     // ****************************************
@@ -319,6 +325,49 @@ $(function () {
         ajax.fail(function (res) {
             let msg = (res.responseJSON && res.responseJSON.message) || "Error searching recommendations";
             $("#flash_message").text(msg);
+        });
+    });
+
+    // ****************************************
+    // Like a Recommendation (Action)
+    // ****************************************
+    $("#like-btn").click(function () {
+        let rec_id = $("#recommendation_like_id").val();
+
+        $("#like_result_id").text("");
+        $("#like_result_source_product_id").text("");
+        $("#like_result_recommended_product_id").text("");
+        $("#like_result_recommendation_type").text("");
+        $("#like_result_like_count").text("");
+        $("#flash_message").text("");
+
+        if (!rec_id) {
+            $("#flash_message").text("Please enter a Recommendation ID");
+            return;
+        }
+
+        let ajax = $.ajax({
+            type: "PUT",
+            url: `/recommendations/${rec_id}/like`,
+            contentType: "application/json"
+        });
+
+        ajax.done(function (res) {
+            $("#like_result_id").text(res.id);
+            $("#like_result_source_product_id").text(res.source_product_id);
+            $("#like_result_recommended_product_id").text(res.recommended_product_id);
+            $("#like_result_recommendation_type").text(res.recommendation_type);
+            $("#like_result_like_count").text(res.like_count);
+            $("#flash_message").text("Recommendation liked successfully!");
+        });
+
+        ajax.fail(function (res) {
+            if (res.status === 404) {
+                $("#flash_message").text(`Recommendation with id '${rec_id}' was not found.`);
+            } else {
+                let msg = (res.responseJSON && res.responseJSON.message) || "Error liking recommendation";
+                $("#flash_message").text(msg);
+            }
         });
     });
 
