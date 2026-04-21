@@ -138,4 +138,26 @@ Feature: Recommendations Service
         When I set the "Query Source Product ID" to "99999999"
         And I press the "Search" button
         Then I should see the message "No recommendations found"
+
+    Scenario: Like a Recommendation
+        When I visit the "Home Page"
+        Then I should see "Recommendations" in the title
+        When I set the "Source Product ID" to "900"
+        And I set the "Recommended Product ID" to "901"
+        And I select "Cross Sell" in the "Recommendation Type" dropdown
+        And I press the "Create" button
+        Then I should see the message "Recommendation created successfully!"
+        When I copy the "ID" field
+        And I press the "Clear" button
+        And I paste the "Like ID" field
+        And I press the "Like" button
+        Then I should see the message "Recommendation liked successfully!"
+        And I should see "1" in the "Like Result Like Count" field
+    
+    Scenario: Like a non-existent Recommendation returns 404
+        When I visit the "Home Page"
+        Then I should see "Recommendations" in the title
+        When I set the "Like ID" to "999999"
+        And I press the "Like" button
+        Then I should see the message "was not found"
     
