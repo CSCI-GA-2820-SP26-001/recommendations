@@ -102,3 +102,40 @@ Feature: Recommendations Service
         When I set the "Delete ID" to "999999"
         And I press the "Delete" button
         Then I should see the message "was not found"
+
+    Scenario: Search Recommendations by Source Product ID
+        When I visit the "Home Page"
+        Then I should see "Recommendations" in the title
+        When I set the "Source Product ID" to "500"
+        And I set the "Recommended Product ID" to "600"
+        And I select "Cross Sell" in the "Recommendation Type" dropdown
+        And I press the "Create" button
+        Then I should see the message "Recommendation created successfully!"
+        When I press the "Clear" button
+        And I set the "Query Source Product ID" to "500"
+        And I press the "Search" button
+        Then I should see the message "Search completed successfully!"
+        And I should see "500" in the results
+        And I should see "600" in the results
+
+    Scenario: Search Recommendations by Type
+        When I visit the "Home Page"
+        Then I should see "Recommendations" in the title
+        When I set the "Source Product ID" to "700"
+        And I set the "Recommended Product ID" to "800"
+        And I select "Up Sell" in the "Recommendation Type" dropdown
+        And I press the "Create" button
+        Then I should see the message "Recommendation created successfully!"
+        When I press the "Clear" button
+        And I select "Up Sell" in the "Query Type" dropdown
+        And I press the "Search" button
+        Then I should see the message "Search completed successfully!"
+        And I should see "UP_SELL" in the results
+
+    Scenario: Search Recommendations with no matches
+        When I visit the "Home Page"
+        Then I should see "Recommendations" in the title
+        When I set the "Query Source Product ID" to "99999999"
+        And I press the "Search" button
+        Then I should see the message "No recommendations found"
+    
