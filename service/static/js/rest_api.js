@@ -209,18 +209,33 @@ $(function () {
             return;
         }
 
-        let ajax = $.ajax({
-            type: "DELETE",
+        // First check if it exists
+        let getAjax = $.ajax({
+            type: "GET",
             url: `/recommendations/${rec_id}`,
             contentType: "application/json"
         });
 
-        ajax.done(function () {
-            $("#recommendation_delete_id").val("");
-            $("#flash_message").text("Recommendation deleted successfully!");
+        getAjax.done(function () {
+            // It exists, now delete it
+            let deleteAjax = $.ajax({
+                type: "DELETE",
+                url: `/recommendations/${rec_id}`,
+                contentType: "application/json"
+            });
+
+            deleteAjax.done(function () {
+                $("#recommendation_delete_id").val("");
+                $("#flash_message").text("Recommendation deleted successfully!");
+            });
+
+            deleteAjax.fail(function (res) {
+                let msg = (res.responseJSON && res.responseJSON.message) || "Error deleting recommendation";
+                $("#flash_message").text(msg);
+            });
         });
 
-        ajax.fail(function (res) {
+        getAjax.fail(function (res) {
             if (res.status === 404) {
                 $("#flash_message").text(`Recommendation with id '${rec_id}' was not found.`);
             } else {
@@ -359,6 +374,15 @@ $(function () {
             $("#like_result_recommendation_type").text(res.recommendation_type);
             $("#like_result_like_count").text(res.like_count);
             $("#flash_message").text("Recommendation liked successfully!");
+            let tbody = $("#search_results_body");
+            tbody.empty();
+            tbody.append(`<tr>
+                <td>${res.id}</td>
+                <td>${res.source_product_id}</td>
+                <td>${res.recommended_product_id}</td>
+                <td>${res.recommendation_type}</td>
+                <td>${res.like_count}</td>
+            </tr>`);
         });
 
         ajax.fail(function (res) {

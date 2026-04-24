@@ -11,12 +11,18 @@ For information on Waiting until elements are present in the HTML see:
 import re
 import logging
 from typing import Any
-from behave import when, then  # pylint: disable=no-name-in-module
+from behave import given, when, then  # pylint: disable=no-name-in-module
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.support import expected_conditions
 
 ID_PREFIX = "recommendation_"
+
+
+@given('the server is running at "{url}"')
+def step_impl(context: Any, url: str) -> None:
+    """Set the base URL for the tests"""
+    context.base_url = url
 
 
 def save_screenshot(context: Any, filename: str) -> None:
