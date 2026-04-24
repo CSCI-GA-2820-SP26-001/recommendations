@@ -1,0 +1,68 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: lint
+spec:
+  workspaces:
+    - name: source
+  steps:
+    - name: lint
+      image: python:3.12-slim
+      workingDir: $(workspaces.source.path)
+      script: |
+        #!/bin/bash
+        set -e
+        pip install pipenv --quiet
+        pipenv install --system --dev --quiet
+        flake8 service tests --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 service tests --count --max-complexity=10 --max-line-length=127 --statistics
+        pylint service tests --max-line-length=127
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: test
+spec:
+  workspaces:
+    - name: source
+  steps:
+    - name: test
+      image: python:3.12-slim
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: DATABASE_URI
+          valueFrom:
+            secretKeyRef:
+              name: postgres-creds
+              key: database_uri
+      script: |
+        #!/bin/bash
+        set -e
+        pip install pipenv --quiet
+        pipenv install --system --dev --quiet
+        pytest --pspec --cov=service --cov-fail-under=95 --disable-warnings
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: bdd-test
+spec:
+  params:
+    - name: BASE_URL
+      description: URL of the deployed service
+      type: string
+  workspaces:
+    - name: source
+  steps:
+    - name: bdd
+      image: python:3.12-slim
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: BASE_URL
+          value: $(params.BASE_URL)
+      script: |
+        #!/bin/bash
+        set -e
+        pip install pipenv --quiet
+        pipenv install --system --dev --quiet
+        behave

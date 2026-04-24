@@ -1,0 +1,91 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: cd-pipeline
+spec:
+  workspaces:
+    - name: pipeline-workspace
+  params:
+    - name: repo-url
+      type: string
+      description: The URL of the git repo to clone
+    - name: branch
+      type: string
+      description: The branch to clone
+      default: master
+    - name: base-url
+      type: string
+      description: The URL of the deployed service for BDD tests
+  tasks:
+    - name: clone
+      taskRef:
+        name: git-clone
+        kind: ClusterTask
+      workspaces:
+        - name: output
+          workspace: pipeline-workspace
+      params:
+        - name: url
+          value: $(params.repo-url)
+        - name: revision
+          value: $(params.branch)
+        - name: deleteExisting
+          value: "true"
+
+    - name: lint
+      taskRef:
+        name: lint
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+      runAfter:
+        - clone
+
+    - name: test
+      taskRef:
+        name: test
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+      runAfter:
+        - clone
+
+    - name: build
+      taskRef:
+        name: buildah
+        kind: ClusterTask
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+      params:
+        - name: IMAGE
+          value: cluster-registry:5000/recommendations:latest
+      runAfter:
+        - lint
+        - test
+
+    - name: deploy
+      taskRef:
+        name: openshift-client
+        kind: ClusterTask
+      workspaces:
+        - name: manifest-dir
+          workspace: pipeline-workspace
+      params:
+        - name: SCRIPT
+          value: |
+            kubectl apply -R -f k8s/
+      runAfter:
+        - build
+
+    - name: bdd-test
+      taskRef:
+        name: bdd-test
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+      params:
+        - name: BASE_URL
+          value: $(params.base-url)
+      runAfter:
+        - deploy
