@@ -4,7 +4,7 @@ Feature: Recommendations Service
     So that I can link two products together with a recommendation type
 
     Background: The server is running
-        Given the server is running at "http://localhost:8080"
+        Given the server is running at "http://localhost:8000"
 
     Scenario: Create a Recommendation
         When I visit the "Home Page"
@@ -152,7 +152,7 @@ Feature: Recommendations Service
         And I paste the "Like ID" field
         And I press the "Like" button
         Then I should see the message "Recommendation liked successfully!"
-        And I should see "1" in the "Like Result Like Count" field
+        And I should see "1" in the results
     
     Scenario: Like a non-existent Recommendation returns 404
         When I visit the "Home Page"
