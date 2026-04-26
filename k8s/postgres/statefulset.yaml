@@ -30,24 +30,9 @@ spec:
                   key: password
             - name: POSTGRES_DB
               value: recommendations
-            - name: PGDATA
-              value: /var/lib/postgresql/data/pgdata
-          securityContext:
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            seccompProfile:
-              type: RuntimeDefault
-            capabilities:
-              drop:
-                - ALL
           volumeMounts:
             - name: postgres-storage
               mountPath: /var/lib/postgresql/data
-              subPath: postgres
-          volumeMounts:
-            - name: postgres-storage
-              mountPath: /var/lib/postgresql/data
-              subPath: postgres
   volumeClaimTemplates:
     - metadata:
         name: postgres-storage
