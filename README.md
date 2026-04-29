@@ -174,6 +174,49 @@ Feature files are located in the `features/` folder. Step definitions are in `fe
 
 ---
 
+## OpenShift Deployment
+
+The Kubernetes/OpenShift manifests live in the `k8s/` directory. To deploy the service and expose it via an OpenShift Route, run:
+
+```bash
+oc apply -R -f k8s/
+```
+
+Once applied, retrieve the auto-generated Route hostname with:
+
+```bash
+oc get route recommendations -o jsonpath='{.spec.host}'
+```
+
+### Route URL
+
+The service is accessible externally at:
+
+```
+https://<route-host>/
+```
+
+where `<route-host>` is the hostname returned by the command above (e.g. `recommendations-<namespace>.apps.<cluster-domain>`).
+
+A `GET /` request to the Route URL should return `200 OK`.
+
+### Running the BDD Pipeline
+
+Pass the Route URL as the `base-url` parameter when starting the Tekton pipeline:
+
+```bash
+tkn pipeline start cd-pipeline \
+  --param repo-url=https://github.com/CSCI-GA-2820-SP26-001/recommendations \
+  --param branch=master \
+  --param base-url=https://<route-host> \
+  --workspace name=pipeline-workspace,claimName=pipeline-pvc \
+  --showlog
+```
+
+The `base-url` value is forwarded to the `bdd-test` task as the `BASE_URL` environment variable.
+
+---
+
 ## License
 
 Copyright (c) 2016, 2025 [John Rofrano](https://www.linkedin.com/in/JohnRofrano/). All rights reserved.
