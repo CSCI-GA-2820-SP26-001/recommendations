@@ -38,9 +38,10 @@ spec:
       script: |
         #!/bin/bash
         set -e
+        apt-get update --quiet && apt-get install -y make --quiet
         pip install pipenv --quiet
         pipenv install --system --dev --quiet
-        pytest --pspec --cov=service --cov-fail-under=95 --disable-warnings
+        make test
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
