@@ -63,10 +63,7 @@ spec:
           workspace: pipeline-workspace
       params:
         - name: IMAGE
-          value: cluster-registry:5000/recommendations:latest
-      runAfter:
-        - lint
-        - test
+          value: default-route-openshift-image-registry.apps.rm3.7wse.p1.openshiftapps.com/tmf8970-dev/recommendations:latest
 
     - name: deploy
       taskRef:
