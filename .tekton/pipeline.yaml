@@ -64,7 +64,7 @@ spec:
       params:
         - name: IMAGE
           value: default-route-openshift-image-registry.apps.rm3.7wse.p1.openshiftapps.com/tmf8970-dev/recommendations:latest
-
+    # Applies Kubernetes manifests to the OpenShift cluster
     - name: deploy
       taskRef:
         name: openshift-client
