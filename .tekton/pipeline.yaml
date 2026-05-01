@@ -19,8 +19,12 @@ spec:
   tasks:
     - name: clone
       taskRef:
-        name: git-clone
-        kind: ClusterTask
+        resolver: hub
+        params:
+          - name: name
+            value: git-clone
+          - name: version
+            value: "0.9"
       workspaces:
         - name: output
           workspace: pipeline-workspace
